@@ -1,0 +1,155 @@
+import 'package:cripto_rotor/enigma.dart';
+import 'package:cripto_rotor/screens/configuration.dart';
+import 'package:cripto_rotor/widgets/custom_button.dart';
+import 'package:cripto_rotor/widgets/custom_text_field.dart';
+import 'package:flutter/material.dart';
+
+class CryptoRotorScreen extends StatefulWidget {
+  final Enigma enigma;
+
+  const CryptoRotorScreen({super.key, required this.enigma});
+
+  @override
+  State<CryptoRotorScreen> createState() => _CryptoRotorScreenState();
+}
+
+class _CryptoRotorScreenState extends State<CryptoRotorScreen> {
+  final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _encryptedController = TextEditingController();
+  final TextEditingController _decryptedController = TextEditingController();
+
+  late Enigma enigma;
+
+  @override
+  void initState() {
+    super.initState();
+    // Asignar la configuración inicial pasada desde la navegación
+    enigma = widget.enigma;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+
+    final double buttonWidth = screenWidth * 0.5;
+    final double iconSize = screenWidth * 0.25;
+    final double fontSizeTitle = screenWidth * 0.06;
+
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF00264D), Color(0xFF005680)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Logo y título
+
+                Icon(
+                  Icons.enhanced_encryption,
+                  size: iconSize,
+                  color: Colors.orange,
+                ),
+                SizedBox(height: screenHeight * 0.01),
+                Text(
+                  'Crypto Rotor',
+                  style: TextStyle(
+                    fontSize: fontSizeTitle,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.03),
+
+                // Mensaje a cifrar
+                TextFieldWidget(
+                  controller: _messageController,
+                  label: 'Mensaje a cifrar',
+                ),
+                SizedBox(height: screenHeight * 0.01),
+                SizedBox(
+                  width: buttonWidth,
+                  child: ButtonWidget(
+                    label: 'Cifrar',
+                    onPressed: () {
+                      // Reinicia las posiciones iniciales antes de cifrar
+                      setState(() {
+                        enigma.setRotorPositions(enigma.rotors.map((rotor) => 'A').toList());
+                        _encryptedController.text = enigma
+                            .process(_messageController.text.toUpperCase());
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.04),
+
+                // Mensaje cifrado
+                TextFieldWidget(
+                  controller: _encryptedController,
+                  label: 'Mensaje cifrado',
+                ),
+                SizedBox(height: screenHeight * 0.01),
+                SizedBox(
+                  width: buttonWidth,
+                  child: ButtonWidget(
+                    label: 'Descifrar',
+                    onPressed: () {
+                      // Reinicia las posiciones iniciales antes de descifrar
+                      setState(() {
+                        enigma.setRotorPositions(enigma.rotors.map((rotor) => 'A').toList());
+                        _decryptedController.text = enigma
+                            .process(_encryptedController.text.toUpperCase());
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.04),
+
+                // Mensaje descifrado
+                TextFieldWidget(
+                  controller: _decryptedController,
+                  label: 'Mensaje descifrado',
+                ),
+                SizedBox(height: screenHeight * 0.08),
+
+                // Configuración
+                SizedBox(
+                  width: buttonWidth,
+                  child: ButtonWidget(
+                    label: 'Ajustar configuración',
+                    onPressed: () async {
+                      final updatedEnigma = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RotorConfigScreen(),
+                        ),
+                      );
+
+                      // Si se devuelve un objeto Enigma actualizado, se aplica
+                      if (updatedEnigma != null) {
+                        setState(() {
+                          enigma = updatedEnigma;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
